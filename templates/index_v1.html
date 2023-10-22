@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>IA | Uc Nicoli Manuel Ricardo</title>
+    <link rel="shortcut icon" href="/favico/ia-ico.png">
+  </head>
+
+  <body style="padding-bottom: 10%; padding-left: 10%;padding-right: 10%; padding-top: 2rem; background-color: lightgoldenrodyellow;">
+    <div class="container mt-5">
+      <h1 style="text-align: center;font-family: 'Segoe UI'">Práctica.</h1>
+      <p style="text-align: center">Desarrollar una aplicación Web que muestre el número total de persona usando la IA (Entrenamiento de Red Neuronal).</p>
+
+      <div style="border: .5rem solid #ccc; padding: 20px; margin-top: 20px; border-radius: 1.5rem;">
+        <form action="/detect" method="POST" enctype="multipart/form-data">
+          <div>
+            <label for="file-input" style="font-size: large;">Seleccionar imagen:</label>
+            <input type="file" id="file-input" name="file" />
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top: 2rem; margin-left: 4rem;">
+            Detectar objetos 
+          </button>
+        </form>
+      </div>
+
+      <!-- Espacio para mostrar la previsualización de la imagen -->
+      <div style="margin-top: 20px">
+        <h2 style="text-align: center;font-family: 'Segoe UI'">Previsualización de la imagen.</h2>
+        <div style="border: 4px solid lightgray; text-align: center; border-radius: 1.5em;">
+          <img
+            id="selected-image"
+            src=""
+            alt="Previsualización de la imagen"
+            style="max-width: 100%; max-height: 100%; padding: 10px;"
+          />
+        </div>
+      </div>
+
+      <div style="margin-top: 20px">
+        <p style="font-family: 'Segoe UI'; font-size: 1.5rem; text-align: center;">Resultados.</p>
+        <div style="border: .2rem solid #ccc; padding: 10px; border-radius: 1.5rem; font-family: 'Segoe UI'">
+          <div style="display: flex; justify-content: space-between; padding-left: 5rem; padding-right: 5rem">
+            <div>
+              <p class="font-weight-bold">
+                Personas detectadas:
+                <span id="personCount" class="font-weight-normal">0</span>
+              </p>
+            </div>
+            <div>
+              <p class="font-weight-bold">
+                Gatos detectados:
+                <span id="catCount" class="font-weight-normal">0</span>
+              </p>
+            </div>
+            <div>
+              <p class="font-weight-bold">
+                Plantas detectadas:
+                <span id="plantCount" class="font-weight-normal">0</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("file-input");
+      const selectedImage = document.getElementById("selected-image");
+
+      fileInput.addEventListener("change", function () {
+        // Limpiar la previsualización de la imagen al seleccionar una nueva
+        selectedImage.src = "";
+        const file = fileInput.files[0];
+        if (file) {
+          const imageURL = URL.createObjectURL(file);
+          selectedImage.src = imageURL;
+        }
+      });
+      document.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById("file-input");
+        const selectedImage = document.getElementById("selected-image");
+
+        if (!fileInput.files.length) {
+          alert("Por favor, seleccione una imagen antes de detectar objetos.");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        fetch("/detect", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const personCount = document.getElementById("personCount");
+            const catCount = document.getElementById("catCount");
+            const plantCount = document.getElementById("plantCount");
+
+            let personCounter = 0;
+            let catCounter = 0;
+            let plantCounter = 0;
+
+            data.results.forEach((result) => {
+              if (result.label === "person") {
+                personCounter++;
+              } else if (result.label === "cat") {
+                catCounter++;
+              } else if (result.label === "pottedplant") {
+                plantCounter++;
+              }
+            });
+
+            personCount.textContent = personCounter;
+            catCount.textContent = catCounter;
+            plantCount.textContent = plantCounter;
+
+            // Mostrar la imagen previsualizada
+            const imageURL = URL.createObjectURL(fileInput.files[0]);
+            selectedImage.src = imageURL;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+    </script>
+  </body>
+</html>
